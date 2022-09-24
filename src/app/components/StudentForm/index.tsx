@@ -42,6 +42,28 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
     return error;
   }
 
+
+//   const renderFormField = (name: string, label: string, validateFn: Function, type: string) => {
+//     return (
+//         <Field name="firstName" validate={validateName}>
+//             {({ field, form }: any) => (
+//             <FormControl
+//                 isInvalid={
+//                     form.errors[name] && form.touched[name]
+//                 }
+//                 style={{ marginBottom: "20px" }}
+//             >
+//                 <FormLabel>{label}</FormLabel>
+//                 <Input {...field} placeholder="First Name" />
+//                 <FormErrorMessage>
+//                 {form.errors.firstName}
+//                 </FormErrorMessage>
+//             </FormControl>
+//             )}
+//         </Field>
+//     );
+//   }
+
   return (
     <Wrapper>
       <Formik
@@ -134,7 +156,7 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                       style={{ marginBottom: "20px" }}
                     >
                       <FormLabel>Country</FormLabel>
-                      <Select {...field} value={student.nationality?.ID}>
+                      <Select {...field} defaultValue={student.nationality?.ID} value={form.values?.nationality?.ID}>
                         {nationalities.map((n) => (
                           <option key={n.ID} value={n.ID}>
                             {n.Title}
@@ -168,28 +190,7 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                 student?.familyMembers?.map(member => {
                     return (
                         <div>
-                            <Field name="nationality" validate={validateName}>
-                                {({ field, form }: any) => (
-                                <FormControl
-                                    isInvalid={
-                                    form.errors.nationality && form.touched.nationality
-                                    }
-                                    style={{ marginBottom: "20px" }}
-                                >
-                                    <FormLabel>Country</FormLabel>
-                                    <Select {...field} value={student.nationality?.ID}>
-                                    {nationalities.map((n) => (
-                                        <option key={n.ID} value={n.ID}>
-                                        {n.Title}
-                                        </option>
-                                    ))}
-                                    </Select>
-                                    <FormErrorMessage>
-                                    {form.errors.nationality}
-                                    </FormErrorMessage>
-                                </FormControl>
-                                )}
-                            </Field>
+                            
                         </div>
                     )
                 })
