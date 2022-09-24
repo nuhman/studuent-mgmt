@@ -2,6 +2,7 @@
 export enum Relation {
   Parent = 'Parent',
   Sibling = 'Sibling',
+  Spouse = 'Spouse',
   Father = 'Father',
   Mother = 'Mother',
   Brother = 'Brother',

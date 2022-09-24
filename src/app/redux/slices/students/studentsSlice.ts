@@ -35,6 +35,7 @@ export const getStudents = createAsyncThunk(
           nationality,
           country: nationality.Title,
           familyMembers: _members,
+          dateOfBirth: student.dateOfBirth.split("T")[0]
         });
       }
 
