@@ -72,6 +72,28 @@ export const getStudenFamilyMembers = async (studentId: number) => {
   }
 }
 
+export const updateStudentNationality = async (studentID: number, nationalityID: number) => {
+  const url = `http://localhost:8088/api/Students/${studentID}/Nationality/${nationalityID}`;
+  try {
+    const rawResponse = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        studentID, 
+        nationalityID
+      }),
+    });
+    const updatedStudent = await rawResponse.json();
+    return updatedStudent;
+  } catch (err) {
+    console.log("Error occured while fetching API: ", url, " Error: ", err);
+    throw err;
+  }
+}
+
 export const postStudent = createAsyncThunk(
   "studentSlice/postStudent",
   async (payload: any, { dispatch }) => {
@@ -91,6 +113,37 @@ export const postStudent = createAsyncThunk(
     } catch (err) {
       console.log("Error occured while fetching API: ", url, " Error: ", err);
       dispatch(studentsAddedError());
+    }
+  }
+);
+
+export const putStudent = createAsyncThunk(
+  "studentSlice/putStudent",
+  async (payload: any, { dispatch }) => {
+    dispatch(updateStudent())
+    const url = `http://localhost:8088/api/Students/${payload.ID}`;
+
+    try {
+      const rawResponse = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const student: Student = await rawResponse.json();
+
+      const _updatedStudentNationality = await updateStudentNationality(student.ID, payload.nationality.ID);
+
+      dispatch(studentUpdated({
+        ...student,
+        nationality: _updatedStudentNationality.nationality,
+        country: _updatedStudentNationality.nationality?.Title
+      }));
+    } catch (err) {
+      console.log("Error occured while fetching API: ", url, " Error: ", err);
+      dispatch(studentsUpdatedError());
     }
   }
 );
@@ -123,6 +176,23 @@ export const studentsSlice = createSlice({
       state.loading = false;
     },
     studentsAddedError(state) {
+      state.hasError = true;
+      state.loading = false;
+    },
+
+    // Student data modification - PUT
+    updateStudent(state) {
+      state.loading = true;
+      state.hasError = false;
+    },
+    studentUpdated(state, action: PayloadAction<Student>) {
+      state.students = state.students.map(student => {
+        if (student.ID !== action.payload.ID) return student;
+        return action.payload;
+      });
+      state.loading = false;
+    },
+    studentsUpdatedError(state) {
       state.hasError = true;
       state.loading = false;
     },
@@ -161,6 +231,9 @@ export const {
   addStudent,
   studentAdded,
   studentsAddedError,
+  updateStudent,
+  studentUpdated,
+  studentsUpdatedError,
 } = studentsSlice.actions;
 
 export default studentsSlice.reducer;

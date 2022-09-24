@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components/macro";
 import {
   FormControl,
@@ -11,7 +11,9 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import { Nationality, NationalityList, Student } from "../../redux/types";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { get as _get } from "lodash";
+import { putStudent } from "../../redux/slices/students/studentsSlice";
 
 export function StudentForm({ studentInfo }: { studentInfo: any }) {
   const student: Student = {
@@ -24,6 +26,14 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
       studentInfo.dateOfBirth && studentInfo.dateOfBirth.split("T")[0],
     familyMembers: studentInfo.familyMembers,
   };
+
+  const dispatch = useDispatch<any>();
+
+  const [studentNationality, setStudentNationality] = useState(
+    student.nationality
+  );
+
+  const [familyInfo, setFamilyInfo] = useState(student.familyMembers);
 
   const nationalities: Array<Nationality> = useSelector(
     (state: { nationalitiesReducer: NationalityList }) =>
@@ -42,38 +52,109 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
     return error;
   }
 
+  const handleStudentNationalityChange = (e: any) => {
+    const _nation = (nationalities || []).find(
+      (n) => `${n.ID}` === e.target.value
+    );
+    setStudentNationality(_nation);
+  };
 
-//   const renderFormField = (name: string, label: string, validateFn: Function, type: string) => {
-//     return (
-//         <Field name="firstName" validate={validateName}>
-//             {({ field, form }: any) => (
-//             <FormControl
-//                 isInvalid={
-//                     form.errors[name] && form.touched[name]
-//                 }
-//                 style={{ marginBottom: "20px" }}
-//             >
-//                 <FormLabel>{label}</FormLabel>
-//                 <Input {...field} placeholder="First Name" />
-//                 <FormErrorMessage>
-//                 {form.errors.firstName}
-//                 </FormErrorMessage>
-//             </FormControl>
-//             )}
-//         </Field>
-//     );
-//   }
+  const handleFamilyNationalityChange = (e: any, memberId: Number) => {
+    const _familyInfo = (familyInfo || []).map((info) => {
+      console.log(info.ID, memberId);
+      if (info.ID === memberId) {
+        const _nation = (nationalities || []).find(
+          (n) => `${n.ID}` === e.target.value
+        );
+        return {
+          ...info,
+          nationality: _nation || info.nationality,
+          country: _nation?.Title,
+        };
+      }
+      return info;
+    });
+
+    setFamilyInfo(_familyInfo);
+  };
+
+  const handleFamilyRelationChange = (e: any, memberId: Number) => {
+    const _familyInfo = (familyInfo || []).map((info) => {
+      if (info.ID === memberId) {
+        return {
+          ...info,
+          relationship: e.target.value,
+          relation: e.target.value,
+        };
+      }
+
+      return info;
+    });
+
+    setFamilyInfo(_familyInfo);
+  };
+
+  const handleFamilyNameChange = (e: any, memberId: Number, isLastName?: boolean) => {
+    console.log(e.target.value);
+    const _familyInfo = (familyInfo || []).map((info) => {
+        console.log(info.ID, memberId, "DXD")
+        if (info.ID === memberId) {
+          return {
+            ...info,
+            firstName: isLastName ? info.firstName : e.target.value,
+            lastName: isLastName ? e.target.value : info.lastName,
+          };
+        }
+  
+        return info;
+      });
+  
+      setFamilyInfo(_familyInfo);
+  }
+
+  const renderFormField = (
+    name: string,
+    label: string,
+    validateFn: Function,
+    type: string,
+    options?: any
+  ) => {
+    const formatSelectValue = (key: string, value: string): string => {
+      if (value) {
+        return `${key}-${value}`;
+      }
+      return key;
+    };
+
+    return (
+      <Field name={name} validate={validateFn}>
+        {({ field, form }: any) => {
+          return (
+            <FormControl
+              isInvalid={form.errors[name] && form.touched[name]}
+              style={{ marginBottom: "20px" }}
+            >
+              <FormLabel>{label}</FormLabel>
+              <Input {...field} placeholder={label} type={type} />
+              <FormErrorMessage>{form.errors[name]}</FormErrorMessage>
+            </FormControl>
+          );
+        }}
+      </Field>
+    );
+  };
 
   return (
     <Wrapper>
       <Formik
         initialValues={student}
         onSubmit={(values, actions) => {
-          const nationality = nationalities.find(
-            (n) => n.ID === Number(values.nationality)
-          );
-          values.nationality = nationality;
-          values.country = nationality?.Title;
+
+          values.familyMembers = familyInfo;
+          values.nationality = studentNationality;
+          values.country = studentNationality?.Title;
+          
+          dispatch(putStudent(values));
 
           setTimeout(() => {
             console.log(values);
@@ -92,83 +173,37 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
               }}
             >
               <div style={{ flex: "0 0 50%", padding: "10px" }}>
-                <Field name="firstName" validate={validateName}>
-                  {({ field, form }: any) => (
-                    <FormControl
-                      isInvalid={
-                        form.errors.firstName && form.touched.firstName
-                      }
-                      style={{ marginBottom: "20px" }}
-                    >
-                      <FormLabel>First name</FormLabel>
-                      <Input {...field} placeholder="First Name" />
-                      <FormErrorMessage>
-                        {form.errors.firstName}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
-                </Field>
-
-                <Field name="dateOfBirth" validate={validateName}>
-                  {({ field, form }: any) => (
-                    <FormControl
-                      isInvalid={
-                        form.errors.dateOfBirth && form.touched.dateOfBirth
-                      }
-                      style={{ marginBottom: "20px" }}
-                    >
-                      <FormLabel>Date of Birth</FormLabel>
-                      <Input
-                        {...field}
-                        type="date"
-                        placeholder="Date of Birth"
-                      />
-                      <FormErrorMessage>
-                        {form.errors.dateOfBirth}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
-                </Field>
+                {renderFormField(
+                  "firstName",
+                  "First Name",
+                  validateName,
+                  "text"
+                )}
+                {renderFormField(
+                  "dateOfBirth",
+                  "Date of Birth",
+                  validateName,
+                  "date"
+                )}
               </div>
 
               <div style={{ flex: "0 0 50%", padding: "10px" }}>
-                <Field name="lastName" validate={validateName}>
-                  {({ field, form }: any) => (
-                    <FormControl
-                      isInvalid={form.errors.lastName && form.touched.lastName}
-                      style={{ marginBottom: "20px" }}
-                    >
-                      <FormLabel>Last name</FormLabel>
-                      <Input {...field} placeholder="Last Name" />
-                      <FormErrorMessage>
-                        {form.errors.lastName}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
-                </Field>
+                {renderFormField("lastName", "Last Name", validateName, "text")}
 
-                <Field name="nationality" validate={validateName}>
-                  {({ field, form }: any) => (
-                    <FormControl
-                      isInvalid={
-                        form.errors.nationality && form.touched.nationality
-                      }
-                      style={{ marginBottom: "20px" }}
-                    >
-                      <FormLabel>Country</FormLabel>
-                      <Select {...field} defaultValue={student.nationality?.ID} value={form.values?.nationality?.ID}>
-                        {nationalities.map((n) => (
-                          <option key={n.ID} value={n.ID}>
-                            {n.Title}
-                          </option>
-                        ))}
-                      </Select>
-                      <FormErrorMessage>
-                        {form.errors.nationality}
-                      </FormErrorMessage>
-                    </FormControl>
-                  )}
-                </Field>
+                <FormControl>
+                  <FormLabel>Country</FormLabel>
+                  <Select
+                    defaultValue={student.nationality?.ID}
+                    value={studentNationality?.ID}
+                    onChange={handleStudentNationalityChange}
+                  >
+                    {nationalities.map((n) => (
+                      <option key={n.ID} value={n.ID}>
+                        {n.Title}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
               </div>
             </div>
 
@@ -185,25 +220,79 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
               >
                 Family Members
               </p>
-
-              {
-                student?.familyMembers?.map(member => {
+              <div style={{ display: "flex" }}>
+                <div style={{ flex: "0 0 50%" }}>
+                  {student?.familyMembers?.map((member, index) => {
                     return (
-                        <div>
-                            
-                        </div>
-                    )
-                })
-              }
+                      <div style={{
+                        boxShadow: 'rgba(100, 100, 111, 0.2) 0px 7px 29px 0px',
+                        padding: '15px',
+                        borderRadius: '20px',
+                        marginBottom: '20px'
+                      }}>
+                        <FormControl>
+                            <FormLabel>First Name</FormLabel>
+                            <Input type='text' value={familyInfo && familyInfo[index].firstName} onChange={(e) => handleFamilyNameChange(e, member.ID)} />
+                        </FormControl>
 
-              <Button
-                mt={4}
-                colorScheme="teal"
-                isLoading={props.isSubmitting}
-                type="submit"
-              >
-                Submit
-              </Button>
+                        <FormControl>
+                        <FormLabel>Last Name</FormLabel>
+                        <Input type='text' value={familyInfo && familyInfo[index].lastName} onChange={(e) => handleFamilyNameChange(e, member.ID, true)} />
+                        </FormControl>
+
+                        <FormControl style={{ marginBottom: "20px" }}>
+                          <FormLabel>Country</FormLabel>
+                          <Select
+                            defaultValue={member.nationality?.ID}
+                            value={
+                              familyInfo && familyInfo[index].nationality?.ID
+                            }
+                            onChange={(e) =>
+                              handleFamilyNationalityChange(e, member.ID)
+                            }
+                          >
+                            {nationalities.map((n) => (
+                              <option key={n.ID} value={n.ID}>
+                                {n.Title}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        <FormControl>
+                          <FormLabel>Relation</FormLabel>
+                          <Select
+                            defaultValue={member.relationship}
+                            value={familyInfo && familyInfo[index].relationship}
+                            onChange={(e) =>
+                              handleFamilyRelationChange(e, member.ID)
+                            }
+                          >
+                            {["Parent", "Sibling", "Spouse"].map((n) => (
+                              <option key={n} value={n}>
+                                {n}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </div>
+                    );
+                  })}
+
+                  <Button
+                    mt={4}
+                    colorScheme="teal"
+                    isLoading={props.isSubmitting}
+                    type="submit"
+                  >
+                    Submit
+                  </Button>
+                </div>
+
+                <div style={{ flex: "0 0 50%" }}>
+                  <p>Asd</p>
+                </div>
+              </div>
             </div>
           </Form>
         )}
