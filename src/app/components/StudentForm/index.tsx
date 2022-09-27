@@ -14,6 +14,7 @@ import { FamilyMember, Nationality, NationalityList, Student, StudentList } from
 import { useDispatch, useSelector } from "react-redux";
 import { get as _get } from "lodash";
 import { deleteStudentFamily, putStudent } from "../../redux/slices/students/studentsSlice";
+import { DeleteIcon } from '@chakra-ui/icons';
 
 export function StudentForm({
   studentInfo,
@@ -413,6 +414,7 @@ export function StudentForm({
                             backgroundColor={"#e74c3c"}
                             color={"#f5f5f5"}
                             disabled={isAdminRole}
+                            rightIcon={<DeleteIcon />}
                         >Delete Member</Button> 
 
                       </div>

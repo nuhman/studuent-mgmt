@@ -6,6 +6,7 @@ import { getStudents, postStudent } from "../../redux/slices/students/studentsSl
 import { getNationalities } from "../../redux/slices/nationality/nationalitySlice";
 import { transformStudentList } from "../../utils/helper";
 import { TableRow } from "../../interfaces";
+import { AddIcon } from '@chakra-ui/icons'
 
 import {
   Nationality,
@@ -77,8 +78,9 @@ export function HomePage() {
             letterSpacing={1}
             _hover={{ bg: COLORS.black }}
             onClick={onOpen}
+            leftIcon={<AddIcon />}
           >
-            ADD NEW STUDENT
+            ADD STUDENT
           </Button>
         </HeaderWrapper>
         <ListTable
