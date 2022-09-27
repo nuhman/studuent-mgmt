@@ -1,7 +1,9 @@
 .app-std-table-row {
-    background-color: #22a6b3;
+    
 }
 .app-std-table-row:hover td{
     cursor: pointer;
+    background-color: #2980b9 !important;
+    color: #f5f5f5;
     opacity: 0.7;
 }

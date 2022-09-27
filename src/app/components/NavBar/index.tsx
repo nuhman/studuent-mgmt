@@ -58,7 +58,7 @@ const Wrapper = styled.div`
   vertical-align: middle;
   justify-content: space-between;
   flex-direction: row;
-  background-color: #22a6b3;
+  background-color: #2980b9;
   box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;
 `;
 

@@ -412,6 +412,7 @@ export function StudentForm({
                             onClick={(e) => handleFamilyDelete(e, student, member)}
                             backgroundColor={"#e74c3c"}
                             color={"#f5f5f5"}
+                            disabled={isAdminRole}
                         >Delete Member</Button> 
 
                       </div>
@@ -481,15 +482,18 @@ export function StudentForm({
                       </FormControl>
                     </div>
                   )}
+                  
                   <Button
                     colorScheme="blue"
                     mt={showAddMemberForm ? 6 : 3}
                     onClick={() => setShowAddMemberForm(!showAddMemberForm)}
+                    disabled={isAdminRole}
                   >
                     {showAddMemberForm
                       ? "Cancel Adding Member"
                       : "Add Family Member"}
                   </Button>
+                  { isAdminRole && <TipText>Tip: Switch to `Registrar` role in the main menu to start modifying data!</TipText>}
                 </div>
               </div>
             </div>
@@ -525,4 +529,11 @@ export function StudentForm({
 
 const Wrapper = styled.div`
   padding: 5px;
+`;
+
+
+const TipText = styled.p`
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-top: 22px;
 `;

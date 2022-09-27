@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { get as _get } from "lodash";
 import { postStudent } from "../../redux/slices/students/studentsSlice";
 
-export function NewForm() {
+export function NewForm({ onClose, }: { onClose: () => void; }) {
   const dispatch = useDispatch<any>();
 
   const [studentNationality, setStudentNationality] = useState<
@@ -334,7 +334,15 @@ export function NewForm() {
                 isLoading={props.isSubmitting}
                 type="submit"
               >
-                Submit
+                Save
+              </Button>
+              <Button
+                mt={12}
+                ml={4}
+                backgroundColor={"#EDF2F"}
+                onClick={onClose}
+              >
+                Cancel
               </Button>
             </div>
           </Form>

@@ -27,13 +27,11 @@ export function NewStudent({ isOpen, onClose, }: StudentModalProps) {
         <ModalCloseButton />
         <ModalBody>
           <NewForm 
-
+            onClose={onClose}
           />
         </ModalBody>
 
-        <ModalFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        </ModalFooter>
+      
       </ModalContent>
     </Modal>
   );

@@ -68,7 +68,6 @@ export function ListTable({
     <>
     <TableContainer style={styles.table.container}>
       <Table variant="striped" colorScheme={colorScheme}>
-        <TableCaption>{caption}</TableCaption>
         <Thead>
           <Tr>{renderTableHeader()}</Tr>
         </Thead>

@@ -27,7 +27,7 @@ export const TABLE_CONTENT_MOCK: Array<TableRow> = [
 
 
 export const COLORS = {
-  appPrimary: '#22a6b3',
+  appPrimary: '#2980b9',
   white: '#f5f6fa',
   black: '#353b48',
 };
