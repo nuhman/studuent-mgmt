@@ -10,10 +10,10 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
-import { Nationality, NationalityList, Student, StudentList } from "../../redux/types";
+import { FamilyMember, Nationality, NationalityList, Student, StudentList } from "../../redux/types";
 import { useDispatch, useSelector } from "react-redux";
 import { get as _get } from "lodash";
-import { putStudent } from "../../redux/slices/students/studentsSlice";
+import { deleteStudentFamily, putStudent } from "../../redux/slices/students/studentsSlice";
 
 export function StudentForm({
   studentInfo,
@@ -79,6 +79,7 @@ export function StudentForm({
     console.log("DXD: _student: ", _student);
     if (_student) {
         setStudent(_student);
+        setFamilyInfo(_student.familyMembers);
     }
   }, [students, studentInfo.ID]);
 
@@ -169,6 +170,14 @@ export function StudentForm({
       relation: e.target.value,
     });
   };
+
+  const handleFamilyDelete = (e: any, _std: Student, member: FamilyMember) => {
+    dispatch(deleteStudentFamily({
+        studentID: _std.ID,
+        memberID: member.ID,
+        student: _std,
+    }));
+  }
 
   const renderFormField = (
     name: string,
@@ -380,9 +389,22 @@ export function StudentForm({
                             ))}
                           </Select>
                         </FormControl>
+
+                        <Button
+                            mt={4}
+                            mb={4}
+                            onClick={(e) => handleFamilyDelete(e, student, member)}
+                            backgroundColor={"#e74c3c"}
+                            color={"#f5f5f5"}
+                        >Delete Member</Button> 
+
                       </div>
                     );
                   })}
+
+                  { (!student?.familyMembers || student.familyMembers.length <= 0) && (
+                    <p>No Family Members added yet!</p>
+                  ) }
                 </div>
 
                 <div style={{ flex: "0 0 50%", padding: "10px" }}>
@@ -462,7 +484,7 @@ export function StudentForm({
                 type="submit"
                 maxWidth={"30%"}
               >
-                SAVE ALL CHANGES
+                SAVE 
               </Button>
               <Button
                 mt={12}

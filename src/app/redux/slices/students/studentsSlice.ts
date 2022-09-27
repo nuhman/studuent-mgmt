@@ -291,6 +291,43 @@ export const putStudent = createAsyncThunk(
   }
 );
 
+export const deleteStudentFamily = createAsyncThunk(
+  "studentSlice/deleteStudentFamily",
+  async (payload: any, { dispatch }) => {
+    dispatch(updateStudent())
+    const url = `http://localhost:8088/api/FamilyMembers/${payload.memberID}`;
+
+    try {
+      const rawResponse = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      let familyMembers: Array<FamilyMember> = [];
+      try {
+          familyMembers = await getStudenFamilyMembers(payload.studentID);
+      } catch (err) {
+          console.log("Error occured while fetching API: ", url, " Error: ", err);
+      }
+
+
+
+      dispatch(studentUpdated({
+        ...payload.student,
+        familyMembers,
+      }));
+
+    } catch (err) {
+      console.log("Error occured while fetching API: ", url, " Error: ", err);
+      dispatch(studentsUpdatedError());
+    }
+  }
+);
+
 export const studentsSlice = createSlice({
   name: "studentSlice",
   initialState,
