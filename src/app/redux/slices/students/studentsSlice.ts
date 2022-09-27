@@ -20,8 +20,13 @@ export const getStudents = createAsyncThunk(
       // get student nationalities
       for (const student of students) {
         const nationality: Nationality = await getStudentNationality(student.ID);
-        const familyMembers: Array<FamilyMember> = await getStudenFamilyMembers(student.ID);
-        const _members: Array<FamilyMember> = familyMembers.map(member => {
+        let familyMembers: Array<FamilyMember> = [];
+        try {
+          familyMembers = await getStudenFamilyMembers(student.ID);
+        } catch (err) {
+          console.log("Error occured while fetching API: ", url, " Error: ", err);
+        }
+        const _members: Array<FamilyMember> = (familyMembers || []).map(member => {
           
           return {
             ...member,
@@ -94,6 +99,66 @@ export const updateStudentNationality = async (studentID: number, nationalityID:
   }
 }
 
+export const insertStudentFamily = async (studentID: number, payload: any) => {
+  const url = `http://localhost:8088/api/Students/${studentID}/FamilyMembers`;
+  try {
+    const rawResponse = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...payload,
+      }),
+    });
+    const updatedStudent = await rawResponse.json();
+    return updatedStudent;
+  } catch (err) {
+    console.log("Error occured while fetching API: ", url, " Error: ", err);
+    throw err;
+  }
+}
+
+export const updateFamilyMember = async (memberID: number, payload: any) => {
+  const url = `http://localhost:8088/api/FamilyMembers/${memberID}`;
+  try {
+    const rawResponse = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const updatedMember = await rawResponse.json();
+    return updatedMember;
+  } catch (err) {
+    console.log("Error occured while fetching API: ", url, " Error: ", err);
+    throw err;
+  }
+}
+
+
+export const updateFamilyMemberNationality = async (memberID: number, nationalityID: number) => {
+  const url = `http://localhost:8088/api/FamilyMembers/${memberID}/Nationality/${nationalityID}`;
+  try {
+    const rawResponse = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ memberID, }),
+    });
+    const updatedMember = await rawResponse.json();
+    return updatedMember;
+  } catch (err) {
+    console.log("Error occured while fetching API: ", url, " Error: ", err);
+    throw err;
+  }
+}
+
 export const postStudent = createAsyncThunk(
   "studentSlice/postStudent",
   async (payload: any, { dispatch }) => {
@@ -109,7 +174,40 @@ export const postStudent = createAsyncThunk(
         body: JSON.stringify(payload),
       });
       const student = await rawResponse.json();
-      dispatch(studentAdded(student));
+
+      const { ID } = student;
+      const _updatedStudentNationality = await updateStudentNationality(ID, (Number(payload.nationality?.ID) || 1));
+      const _members: Array<FamilyMember> = [];
+
+      for (const member of payload.familyMembers) {
+        const _updatedMember = await insertStudentFamily(
+          ID,
+          { 
+            firstName: member.firstName,
+            lastName: member.lastName,
+            dateOfBirth: member.dateOfBirth,
+            relationship: member.relationship
+          }
+        );
+
+        await updateFamilyMemberNationality(_updatedMember.ID, (Number(member.nationality?.ID) || 1));
+        
+        _members.push({
+          ...member,
+          ID: _updatedMember.ID,
+          firstName: _updatedMember.firstName,
+          lastName: _updatedMember.lastName,
+          dateOfBirth: _updatedMember.dateOfBirth,
+          relationship: _updatedMember.relationship
+        })
+      }
+
+      dispatch(studentAdded({
+        ...student,
+        nationality: _updatedStudentNationality.nationality,
+        country: _updatedStudentNationality.nationality?.Title,
+        familyMembers: _members,
+      }));
     } catch (err) {
       console.log("Error occured while fetching API: ", url, " Error: ", err);
       dispatch(studentsAddedError());
@@ -133,13 +231,58 @@ export const putStudent = createAsyncThunk(
         body: JSON.stringify(payload),
       });
       const student: Student = await rawResponse.json();
-
+      console.log("DXD: here:", payload);
       const _updatedStudentNationality = await updateStudentNationality(student.ID, payload.nationality.ID);
+      const _members: Array<FamilyMember> = [];
+
+      for (const member of payload.familyMembers) {
+        const _updatedMember = await updateFamilyMember(
+          member.ID, 
+          { 
+            firstName: member.firstName,
+            lastName: member.lastName,
+            dateOfBirth: member.dateOfBirth,
+            relationship: member.relationship
+          }
+        );
+        
+        _members.push({
+          ...member,
+          firstName: _updatedMember.firstName,
+          lastName: _updatedMember.lastName,
+          dateOfBirth: _updatedMember.dateOfBirth,
+          relationship: _updatedMember.relationship
+        })
+      }
+
+      if (payload.newMember && payload.newMember.firstName && payload.newMember.lastName && payload.newMember.dateOfBirth) {
+        const _updatedMember = await insertStudentFamily(
+          student.ID,
+          { 
+            firstName: payload.newMember.firstName,
+            lastName: payload.newMember.lastName,
+            dateOfBirth: payload.newMember.dateOfBirth,
+            relationship: payload.newMember.relationship
+          }
+        );
+
+        await updateFamilyMemberNationality(_updatedMember.ID, (Number(payload.newMember.nationality?.ID) || 1));
+        
+        _members.push({
+          ...payload.newMember,
+          ID: _updatedMember.ID,
+          firstName: _updatedMember.firstName,
+          lastName: _updatedMember.lastName,
+          dateOfBirth: _updatedMember.dateOfBirth,
+          relationship: _updatedMember.relationship
+        });
+      }
 
       dispatch(studentUpdated({
         ...student,
         nationality: _updatedStudentNationality.nationality,
-        country: _updatedStudentNationality.nationality?.Title
+        country: _updatedStudentNationality.nationality?.Title,
+        familyMembers: _members,
       }));
     } catch (err) {
       console.log("Error occured while fetching API: ", url, " Error: ", err);

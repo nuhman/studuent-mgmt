@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components/macro";
 import {
   FormControl,
@@ -10,13 +10,19 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
-import { Nationality, NationalityList, Student } from "../../redux/types";
+import { Nationality, NationalityList, Student, StudentList } from "../../redux/types";
 import { useDispatch, useSelector } from "react-redux";
 import { get as _get } from "lodash";
 import { putStudent } from "../../redux/slices/students/studentsSlice";
 
-export function StudentForm({ studentInfo }: { studentInfo: any }) {
-  const student: Student = {
+export function StudentForm({
+  studentInfo,
+  onClose,
+}: {
+  studentInfo: any;
+  onClose: () => void;
+}) {
+  const [student, setStudent] = useState<Student>({
     ID: studentInfo.ID,
     firstName: studentInfo.firstName,
     lastName: studentInfo.lastName,
@@ -25,15 +31,34 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
     dateOfBirth:
       studentInfo.dateOfBirth && studentInfo.dateOfBirth.split("T")[0],
     familyMembers: studentInfo.familyMembers,
-  };
+  });
 
   const dispatch = useDispatch<any>();
 
   const [studentNationality, setStudentNationality] = useState(
-    student.nationality
+    studentInfo.nationality
   );
 
   const [familyInfo, setFamilyInfo] = useState(student.familyMembers);
+  const [showAddMemberForm, setShowAddMemberForm] = useState(false);
+
+  const [newFamilyInfo, setNewFamilyInfo] = useState<{
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    nationality: Nationality | undefined;
+    country?: string;
+    relation: string;
+    relationship: string;
+  }>({
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    nationality: undefined,
+    country: "",
+    relation: "",
+    relationship: "",
+  });
 
   const nationalities: Array<Nationality> = useSelector(
     (state: { nationalitiesReducer: NationalityList }) =>
@@ -44,12 +69,21 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
       state.nationalitiesReducer.hasError
   );
 
-  function validateName(value: string) {
-    let error;
-    if (!value) {
-      error = "Name is required";
+  const students: Array<Student> = useSelector(
+    (state: { studentsReducer: StudentList }) => state.studentsReducer.students
+  );
+
+  useEffect(() => {
+    // eslint-disable-next-line eqeqeq
+    const _student = students.find(std => std.ID == studentInfo.ID);
+    console.log("DXD: _student: ", _student);
+    if (_student) {
+        setStudent(_student);
     }
-    return error;
+  }, [students, studentInfo.ID]);
+
+  function validateName(value: string) {
+    return;
   }
 
   const handleStudentNationalityChange = (e: any) => {
@@ -94,23 +128,47 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
     setFamilyInfo(_familyInfo);
   };
 
-  const handleFamilyNameChange = (e: any, memberId: Number, isLastName?: boolean) => {
+  const handleFamilyNameChange = (
+    e: any,
+    memberId: Number,
+    isLastName?: boolean
+  ) => {
     console.log(e.target.value);
     const _familyInfo = (familyInfo || []).map((info) => {
-        console.log(info.ID, memberId, "DXD")
-        if (info.ID === memberId) {
-          return {
-            ...info,
-            firstName: isLastName ? info.firstName : e.target.value,
-            lastName: isLastName ? e.target.value : info.lastName,
-          };
-        }
-  
-        return info;
-      });
-  
-      setFamilyInfo(_familyInfo);
-  }
+      console.log(info.ID, memberId, "DXD");
+      if (info.ID === memberId) {
+        return {
+          ...info,
+          firstName: isLastName ? info.firstName : e.target.value,
+          lastName: isLastName ? e.target.value : info.lastName,
+        };
+      }
+
+      return info;
+    });
+
+    setFamilyInfo(_familyInfo);
+  };
+
+  const handleNewFamilyNationalityChange = (e: any) => {
+    const _nation = (nationalities || []).find(
+      (n) => `${n.ID}` === e.target.value
+    );
+
+    setNewFamilyInfo({
+      ...newFamilyInfo,
+      nationality: _nation,
+      country: _nation?.Title,
+    });
+  };
+
+  const handleNewFamilyRelationChange = (e: any) => {
+    setNewFamilyInfo({
+      ...newFamilyInfo,
+      relationship: e.target.value,
+      relation: e.target.value,
+    });
+  };
 
   const renderFormField = (
     name: string,
@@ -119,13 +177,6 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
     type: string,
     options?: any
   ) => {
-    const formatSelectValue = (key: string, value: string): string => {
-      if (value) {
-        return `${key}-${value}`;
-      }
-      return key;
-    };
-
     return (
       <Field name={name} validate={validateFn}>
         {({ field, form }: any) => {
@@ -147,13 +198,46 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
   return (
     <Wrapper>
       <Formik
-        initialValues={student}
+        initialValues={{
+          ...student,
+          newMember: {
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+          },
+        }}
         onSubmit={(values, actions) => {
-
           values.familyMembers = familyInfo;
           values.nationality = studentNationality;
           values.country = studentNationality?.Title;
-          
+          values.newMember = {
+            ...newFamilyInfo,
+            ...values.newMember,
+          };
+
+          let isMissingValue = false;
+          (values.familyMembers || []).forEach((mem) => {
+            if (!mem.firstName || !mem.lastName || !mem.dateOfBirth) {
+              isMissingValue = true;
+            }
+          });
+
+          if (!values.firstName || !values.lastName || !values.dateOfBirth) {
+            isMissingValue = true;
+          }
+
+          if (
+            (showAddMemberForm && (!values.newMember ||
+            !values.newMember.firstName ||
+            !values.newMember.lastName ||
+            !values.dateOfBirth)) ||
+            isMissingValue
+          ) {
+            actions.setSubmitting(false);
+            alert("Please provide all necessary details!");
+            return;
+          }
+
           dispatch(putStudent(values));
 
           setTimeout(() => {
@@ -221,23 +305,44 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                 Family Members
               </p>
               <div style={{ display: "flex" }}>
-                <div style={{ flex: "0 0 50%" }}>
+                <div
+                  style={{
+                    flex: "0 0 50%",
+                    padding: "10px",
+                    borderRight: "2px dotted darkgrey",
+                  }}
+                >
                   {student?.familyMembers?.map((member, index) => {
                     return (
-                      <div style={{
-                        boxShadow: 'rgba(100, 100, 111, 0.2) 0px 7px 29px 0px',
-                        padding: '15px',
-                        borderRadius: '20px',
-                        marginBottom: '20px'
-                      }}>
+                      <div
+                        style={{
+                          boxShadow:
+                            "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px",
+                          padding: "15px",
+                          borderRadius: "20px",
+                          marginBottom: "20px",
+                        }}
+                      >
                         <FormControl>
-                            <FormLabel>First Name</FormLabel>
-                            <Input type='text' value={familyInfo && familyInfo[index].firstName} onChange={(e) => handleFamilyNameChange(e, member.ID)} />
+                          <FormLabel>First Name</FormLabel>
+                          <Input
+                            type="text"
+                            value={familyInfo && familyInfo[index]?.firstName}
+                            onChange={(e) =>
+                              handleFamilyNameChange(e, member.ID)
+                            }
+                          />
                         </FormControl>
 
                         <FormControl>
-                        <FormLabel>Last Name</FormLabel>
-                        <Input type='text' value={familyInfo && familyInfo[index].lastName} onChange={(e) => handleFamilyNameChange(e, member.ID, true)} />
+                          <FormLabel>Last Name</FormLabel>
+                          <Input
+                            type="text"
+                            value={familyInfo && familyInfo[index]?.lastName}
+                            onChange={(e) =>
+                              handleFamilyNameChange(e, member.ID, true)
+                            }
+                          />
                         </FormControl>
 
                         <FormControl style={{ marginBottom: "20px" }}>
@@ -245,7 +350,7 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                           <Select
                             defaultValue={member.nationality?.ID}
                             value={
-                              familyInfo && familyInfo[index].nationality?.ID
+                              familyInfo && familyInfo[index]?.nationality?.ID
                             }
                             onChange={(e) =>
                               handleFamilyNationalityChange(e, member.ID)
@@ -263,7 +368,7 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                           <FormLabel>Relation</FormLabel>
                           <Select
                             defaultValue={member.relationship}
-                            value={familyInfo && familyInfo[index].relationship}
+                            value={familyInfo && familyInfo[index]?.relationship}
                             onChange={(e) =>
                               handleFamilyRelationChange(e, member.ID)
                             }
@@ -278,21 +383,97 @@ export function StudentForm({ studentInfo }: { studentInfo: any }) {
                       </div>
                     );
                   })}
+                </div>
 
+                <div style={{ flex: "0 0 50%", padding: "10px" }}>
+                  {showAddMemberForm && (
+                    <div>
+                      {renderFormField(
+                        "newMember.firstName",
+                        "First Name",
+                        validateName,
+                        "text"
+                      )}
+
+                      {renderFormField(
+                        "newMember.lastName",
+                        "Last Name",
+                        validateName,
+                        "text"
+                      )}
+
+                      {renderFormField(
+                        "newMember.dateOfBirth",
+                        "Date of Birth",
+                        validateName,
+                        "date"
+                      )}
+
+                      <FormControl style={{ marginBottom: "20px" }}>
+                        <FormLabel>Country</FormLabel>
+                        <Select
+                          defaultValue={nationalities && nationalities[0].ID}
+                          value={newFamilyInfo.nationality?.ID}
+                          onChange={(e) => handleNewFamilyNationalityChange(e)}
+                        >
+                          {nationalities.map((n) => (
+                            <option key={n.ID} value={n.ID}>
+                              {n.Title}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel>Relation</FormLabel>
+                        <Select
+                          defaultValue={"Parent"}
+                          value={newFamilyInfo.relationship || "Parent"}
+                          onChange={(e) => handleNewFamilyRelationChange(e)}
+                        >
+                          {["Parent", "Sibling", "Spouse"].map((n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                  )}
                   <Button
-                    mt={4}
-                    colorScheme="teal"
-                    isLoading={props.isSubmitting}
-                    type="submit"
+                    colorScheme="blue"
+                    mt={showAddMemberForm ? 6 : 3}
+                    onClick={() => setShowAddMemberForm(!showAddMemberForm)}
                   >
-                    Submit
+                    {showAddMemberForm
+                      ? "Cancel Adding Member"
+                      : "Add Family Member"}
                   </Button>
                 </div>
-
-                <div style={{ flex: "0 0 50%" }}>
-                  <p>Asd</p>
-                </div>
               </div>
+            </div>
+
+            <div>
+              <Button
+                mt={12}
+                mb={4}
+                colorScheme="teal"
+                isLoading={props.isSubmitting}
+                type="submit"
+                maxWidth={"30%"}
+              >
+                SAVE ALL CHANGES
+              </Button>
+              <Button
+                mt={12}
+                ml={6}
+                mb={4}
+                maxWidth={"30%"}
+                onClick={onClose}
+                backgroundColor={"#EDF2F"}
+              >
+                CANCEL
+              </Button>
             </div>
           </Form>
         )}

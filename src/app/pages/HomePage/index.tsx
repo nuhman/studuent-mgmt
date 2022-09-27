@@ -14,7 +14,7 @@ import {
   StudentList,
 } from "../../redux/types";
 
-import { ListTable, } from "../../components";
+import { ListTable, NewStudent, } from "../../components";
 
 // TEMP:
 import {
@@ -42,6 +42,8 @@ export function HomePage() {
   );
 
   const dispatch = useDispatch<any>();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const useEffectOnMount = (effect: React.EffectCallback) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,6 +76,7 @@ export function HomePage() {
             color={COLORS.white}
             letterSpacing={1}
             _hover={{ bg: COLORS.black }}
+            onClick={onOpen}
           >
             ADD NEW STUDENT
           </Button>
@@ -85,6 +88,11 @@ export function HomePage() {
           }}
           colorScheme="gray"
         />
+       
+       <NewStudent 
+        isOpen={isOpen}
+        onClose={onClose}
+       />
       </Wrapper>
     </>
   );
