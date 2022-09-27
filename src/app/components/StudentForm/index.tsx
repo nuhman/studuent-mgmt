@@ -39,6 +39,8 @@ export function StudentForm({
     studentInfo.nationality
   );
 
+  
+
   const [familyInfo, setFamilyInfo] = useState(student.familyMembers);
   const [showAddMemberForm, setShowAddMemberForm] = useState(false);
 
@@ -67,6 +69,11 @@ export function StudentForm({
   const nationalitiesLoadedError: boolean = useSelector(
     (state: { nationalitiesReducer: NationalityList }) =>
       state.nationalitiesReducer.hasError
+  );
+
+  const isAdminRole: boolean = useSelector(
+    (state: { authReducer: { isAdmin: boolean} }) =>
+      state.authReducer.isAdmin
   );
 
   const students: Array<Student> = useSelector(
@@ -184,7 +191,7 @@ export function StudentForm({
     label: string,
     validateFn: Function,
     type: string,
-    options?: any
+    isNonAddMemberField: boolean = true
   ) => {
     return (
       <Field name={name} validate={validateFn}>
@@ -195,7 +202,7 @@ export function StudentForm({
               style={{ marginBottom: "20px" }}
             >
               <FormLabel>{label}</FormLabel>
-              <Input {...field} placeholder={label} type={type} />
+              <Input {...field} placeholder={label} type={type} disabled={isNonAddMemberField && isAdminRole} />
               <FormErrorMessage>{form.errors[name]}</FormErrorMessage>
             </FormControl>
           );
@@ -250,9 +257,13 @@ export function StudentForm({
           dispatch(putStudent(values));
 
           setTimeout(() => {
-            console.log(values);
+            values.newMember = {
+                firstName: "",
+                lastName: "",
+                dateOfBirth: "",
+            };
             actions.setSubmitting(false);
-          }, 1000);
+          }, 2000);
         }}
       >
         {(props) => (
@@ -289,6 +300,7 @@ export function StudentForm({
                     defaultValue={student.nationality?.ID}
                     value={studentNationality?.ID}
                     onChange={handleStudentNationalityChange}
+                    disabled={isAdminRole}
                   >
                     {nationalities.map((n) => (
                       <option key={n.ID} value={n.ID}>
@@ -340,6 +352,7 @@ export function StudentForm({
                             onChange={(e) =>
                               handleFamilyNameChange(e, member.ID)
                             }
+                            disabled={isAdminRole}
                           />
                         </FormControl>
 
@@ -351,6 +364,7 @@ export function StudentForm({
                             onChange={(e) =>
                               handleFamilyNameChange(e, member.ID, true)
                             }
+                            disabled={isAdminRole}
                           />
                         </FormControl>
 
@@ -364,6 +378,7 @@ export function StudentForm({
                             onChange={(e) =>
                               handleFamilyNationalityChange(e, member.ID)
                             }
+                            disabled={isAdminRole}
                           >
                             {nationalities.map((n) => (
                               <option key={n.ID} value={n.ID}>
@@ -381,6 +396,7 @@ export function StudentForm({
                             onChange={(e) =>
                               handleFamilyRelationChange(e, member.ID)
                             }
+                            disabled={isAdminRole}
                           >
                             {["Parent", "Sibling", "Spouse"].map((n) => (
                               <option key={n} value={n}>
@@ -414,21 +430,24 @@ export function StudentForm({
                         "newMember.firstName",
                         "First Name",
                         validateName,
-                        "text"
+                        "text",
+                        false,
                       )}
 
                       {renderFormField(
                         "newMember.lastName",
                         "Last Name",
                         validateName,
-                        "text"
+                        "text",
+                        false,
                       )}
 
                       {renderFormField(
                         "newMember.dateOfBirth",
                         "Date of Birth",
                         validateName,
-                        "date"
+                        "date",
+                        false,
                       )}
 
                       <FormControl style={{ marginBottom: "20px" }}>
