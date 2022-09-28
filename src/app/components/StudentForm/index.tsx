@@ -8,6 +8,7 @@ import {
   Button,
   Select,
   useToast,
+  Badge,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Formik, Form, Field } from "formik";
@@ -528,7 +529,7 @@ export function StudentForm({
                   </Button>
                   {isAdminRole && (
                     <TipText>
-                      Tip: Switch to `Registrar` role in the main menu to start
+                      Tip: Switch to <Badge colorScheme='green'>Registrar</Badge> role in the main menu to start
                       modifying data!
                     </TipText>
                   )}
@@ -544,6 +545,7 @@ export function StudentForm({
                 isLoading={props.isSubmitting}
                 type="submit"
                 maxWidth={"30%"}
+                disabled={isAdminRole}
               >
                 SAVE
               </Button>
