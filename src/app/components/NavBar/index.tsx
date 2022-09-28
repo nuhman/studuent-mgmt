@@ -74,6 +74,7 @@ const NavBrand = styled.div`
   margin-left: 20px;
   span {
     font-size: 1.525rem;
+    letter-spacing: 0.25rem;
     color: #dff9fb;
   }
 `;
