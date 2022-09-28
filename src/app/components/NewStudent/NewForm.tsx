@@ -7,6 +7,7 @@ import {
   Input,
   Button,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +20,7 @@ import { postStudent } from "../../redux/slices/students/studentsSlice";
 
 export function NewForm({ onClose }: { onClose: () => void }) {
   const dispatch = useDispatch<any>();
+  const toast = useToast();
 
   // Local state
   const [studentNationality, setStudentNationality] = useState<
@@ -177,7 +179,13 @@ export function NewForm({ onClose }: { onClose: () => void }) {
 
           if (!values.firstName || !values.lastName || !values.dateOfBirth) {
             actions.setSubmitting(false);
-            alert("Please provide necessary details!");
+            toast({
+              title: 'Form Error',
+              description: "Please provide necessary details!",
+              status: 'error',
+              duration: 4000,
+              isClosable: true,
+            });
             return;
           }
 
@@ -194,8 +202,14 @@ export function NewForm({ onClose }: { onClose: () => void }) {
           dispatch(postStudent(values));
 
           setTimeout(() => {
-            console.log(values);
             actions.setSubmitting(false);
+            toast({
+              title: 'Success',
+              description: "Student is added to the system!",
+              status: 'success',
+              duration: 4000,
+              isClosable: true,
+            });
           }, 2000);
         }}
       >

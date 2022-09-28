@@ -7,6 +7,7 @@ import {
   Input,
   Button,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { Formik, Form, Field } from "formik";
@@ -47,6 +48,7 @@ export function StudentForm({
   });
 
   const dispatch = useDispatch<any>();
+  const toast = useToast();
 
   // Local states
   const [studentNationality, setStudentNationality] = useState(
@@ -261,7 +263,13 @@ export function StudentForm({
             isMissingValue
           ) {
             actions.setSubmitting(false);
-            alert("Please provide all necessary details!");
+            toast({
+              title: 'Form Error',
+              description: "Please provide necessary details!",
+              status: 'error',
+              duration: 4000,
+              isClosable: true,
+            });
             return;
           }
 
@@ -274,6 +282,13 @@ export function StudentForm({
               dateOfBirth: "",
             };
             actions.setSubmitting(false);
+            toast({
+              title: 'Success',
+              description: "Student data is updated!",
+              status: 'success',
+              duration: 4000,
+              isClosable: true,
+            });
           }, 2000);
         }}
       >
