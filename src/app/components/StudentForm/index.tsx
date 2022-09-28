@@ -4,17 +4,28 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   Input,
   Button,
   Select,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 import { Formik, Form, Field } from "formik";
-import { FamilyMember, Nationality, NationalityList, Student, StudentList } from "../../redux/types";
 import { useDispatch, useSelector } from "react-redux";
-import { get as _get } from "lodash";
-import { deleteStudentFamily, putStudent } from "../../redux/slices/students/studentsSlice";
-import { DeleteIcon } from '@chakra-ui/icons';
+
+// Models
+import {
+  FamilyMember,
+  Nationality,
+  NationalityList,
+  Student,
+  StudentList,
+} from "../../redux/types";
+
+// Redux slices
+import {
+  deleteStudentFamily,
+  putStudent,
+} from "../../redux/slices/students/studentsSlice";
 
 export function StudentForm({
   studentInfo,
@@ -23,6 +34,7 @@ export function StudentForm({
   studentInfo: any;
   onClose: () => void;
 }) {
+  // 'student' is used to populate student data in the form
   const [student, setStudent] = useState<Student>({
     ID: studentInfo.ID,
     firstName: studentInfo.firstName,
@@ -36,15 +48,12 @@ export function StudentForm({
 
   const dispatch = useDispatch<any>();
 
+  // Local states
   const [studentNationality, setStudentNationality] = useState(
     studentInfo.nationality
   );
-
-  
-
   const [familyInfo, setFamilyInfo] = useState(student.familyMembers);
   const [showAddMemberForm, setShowAddMemberForm] = useState(false);
-
   const [newFamilyInfo, setNewFamilyInfo] = useState<{
     firstName: string;
     lastName: string;
@@ -63,37 +72,33 @@ export function StudentForm({
     relationship: "",
   });
 
+  // Redux store selectos
   const nationalities: Array<Nationality> = useSelector(
     (state: { nationalitiesReducer: NationalityList }) =>
       state.nationalitiesReducer.nationalities
   );
-  const nationalitiesLoadedError: boolean = useSelector(
-    (state: { nationalitiesReducer: NationalityList }) =>
-      state.nationalitiesReducer.hasError
-  );
-
   const isAdminRole: boolean = useSelector(
-    (state: { authReducer: { isAdmin: boolean} }) =>
-      state.authReducer.isAdmin
+    (state: { authReducer: { isAdmin: boolean } }) => state.authReducer.isAdmin
   );
-
   const students: Array<Student> = useSelector(
     (state: { studentsReducer: StudentList }) => state.studentsReducer.students
   );
 
   useEffect(() => {
     // eslint-disable-next-line eqeqeq
-    const _student = students.find(std => std.ID == studentInfo.ID);
-    console.log("DXD: _student: ", _student);
+    const _student = students.find((std) => std.ID == studentInfo.ID);
     if (_student) {
-        setStudent(_student);
-        setFamilyInfo(_student.familyMembers);
+      setStudent(_student);
+      setFamilyInfo(_student.familyMembers);
     }
   }, [students, studentInfo.ID]);
 
   function validateName(value: string) {
+    // PASS: validate fn TODO
     return;
   }
+
+  // Below methods used to handle form data change
 
   const handleStudentNationalityChange = (e: any) => {
     const _nation = (nationalities || []).find(
@@ -130,7 +135,6 @@ export function StudentForm({
           relation: e.target.value,
         };
       }
-
       return info;
     });
 
@@ -142,7 +146,6 @@ export function StudentForm({
     memberId: Number,
     isLastName?: boolean
   ) => {
-    console.log(e.target.value);
     const _familyInfo = (familyInfo || []).map((info) => {
       console.log(info.ID, memberId, "DXD");
       if (info.ID === memberId) {
@@ -152,7 +155,6 @@ export function StudentForm({
           lastName: isLastName ? e.target.value : info.lastName,
         };
       }
-
       return info;
     });
 
@@ -180,12 +182,14 @@ export function StudentForm({
   };
 
   const handleFamilyDelete = (e: any, _std: Student, member: FamilyMember) => {
-    dispatch(deleteStudentFamily({
+    dispatch(
+      deleteStudentFamily({
         studentID: _std.ID,
         memberID: member.ID,
         student: _std,
-    }));
-  }
+      })
+    );
+  };
 
   const renderFormField = (
     name: string,
@@ -203,7 +207,12 @@ export function StudentForm({
               style={{ marginBottom: "20px" }}
             >
               <FormLabel>{label}</FormLabel>
-              <Input {...field} placeholder={label} type={type} disabled={isNonAddMemberField && isAdminRole} />
+              <Input
+                {...field}
+                placeholder={label}
+                type={type}
+                disabled={isNonAddMemberField && isAdminRole}
+              />
               <FormErrorMessage>{form.errors[name]}</FormErrorMessage>
             </FormControl>
           );
@@ -244,10 +253,11 @@ export function StudentForm({
           }
 
           if (
-            (showAddMemberForm && (!values.newMember ||
-            !values.newMember.firstName ||
-            !values.newMember.lastName ||
-            !values.dateOfBirth)) ||
+            (showAddMemberForm &&
+              (!values.newMember ||
+                !values.newMember.firstName ||
+                !values.newMember.lastName ||
+                !values.dateOfBirth)) ||
             isMissingValue
           ) {
             actions.setSubmitting(false);
@@ -259,9 +269,9 @@ export function StudentForm({
 
           setTimeout(() => {
             values.newMember = {
-                firstName: "",
-                lastName: "",
-                dateOfBirth: "",
+              firstName: "",
+              lastName: "",
+              dateOfBirth: "",
             };
             actions.setSubmitting(false);
           }, 2000);
@@ -393,7 +403,9 @@ export function StudentForm({
                           <FormLabel>Relation</FormLabel>
                           <Select
                             defaultValue={member.relationship}
-                            value={familyInfo && familyInfo[index]?.relationship}
+                            value={
+                              familyInfo && familyInfo[index]?.relationship
+                            }
                             onChange={(e) =>
                               handleFamilyRelationChange(e, member.ID)
                             }
@@ -408,22 +420,26 @@ export function StudentForm({
                         </FormControl>
 
                         <Button
-                            mt={4}
-                            mb={4}
-                            onClick={(e) => handleFamilyDelete(e, student, member)}
-                            backgroundColor={"#e74c3c"}
-                            color={"#f5f5f5"}
-                            disabled={isAdminRole}
-                            rightIcon={<DeleteIcon />}
-                        >Delete Member</Button> 
-
+                          mt={4}
+                          mb={4}
+                          onClick={(e) =>
+                            handleFamilyDelete(e, student, member)
+                          }
+                          backgroundColor={"#e74c3c"}
+                          color={"#f5f5f5"}
+                          disabled={isAdminRole}
+                          rightIcon={<DeleteIcon />}
+                        >
+                          Delete Member
+                        </Button>
                       </div>
                     );
                   })}
 
-                  { (!student?.familyMembers || student.familyMembers.length <= 0) && (
+                  {(!student?.familyMembers ||
+                    student.familyMembers.length <= 0) && (
                     <p>No Family Members added yet!</p>
-                  ) }
+                  )}
                 </div>
 
                 <div style={{ flex: "0 0 50%", padding: "10px" }}>
@@ -434,7 +450,7 @@ export function StudentForm({
                         "First Name",
                         validateName,
                         "text",
-                        false,
+                        false
                       )}
 
                       {renderFormField(
@@ -442,7 +458,7 @@ export function StudentForm({
                         "Last Name",
                         validateName,
                         "text",
-                        false,
+                        false
                       )}
 
                       {renderFormField(
@@ -450,7 +466,7 @@ export function StudentForm({
                         "Date of Birth",
                         validateName,
                         "date",
-                        false,
+                        false
                       )}
 
                       <FormControl style={{ marginBottom: "20px" }}>
@@ -484,7 +500,7 @@ export function StudentForm({
                       </FormControl>
                     </div>
                   )}
-                  
+
                   <Button
                     colorScheme="blue"
                     mt={showAddMemberForm ? 6 : 3}
@@ -495,7 +511,12 @@ export function StudentForm({
                       ? "Cancel Adding Member"
                       : "Add Family Member"}
                   </Button>
-                  { isAdminRole && <TipText>Tip: Switch to `Registrar` role in the main menu to start modifying data!</TipText>}
+                  {isAdminRole && (
+                    <TipText>
+                      Tip: Switch to `Registrar` role in the main menu to start
+                      modifying data!
+                    </TipText>
+                  )}
                 </div>
               </div>
             </div>
@@ -509,7 +530,7 @@ export function StudentForm({
                 type="submit"
                 maxWidth={"30%"}
               >
-                SAVE 
+                SAVE
               </Button>
               <Button
                 mt={12}
@@ -532,7 +553,6 @@ export function StudentForm({
 const Wrapper = styled.div`
   padding: 5px;
 `;
-
 
 const TipText = styled.p`
   font-size: 12px;

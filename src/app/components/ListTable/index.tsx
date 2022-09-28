@@ -6,28 +6,32 @@ import {
   Tr,
   Th,
   Td,
-  TableCaption,
   TableContainer,
   useDisclosure
 } from '@chakra-ui/react';
+import { useSelector } from 'react-redux';
 
 import './index.css';
+
+// Models
 import { TableProps } from '../../interfaces';
 import { StudentModal } from '../StudentModal';
 import { Student, StudentList } from '../../redux/types';
-import { useSelector } from 'react-redux';
 
 export function ListTable({
-  caption = 'Sample Table here ',
   tableContent,
   colorScheme = 'red',
 }: TableProps) {
 
+  // Model state
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // Redux Store Selectors
   const students: Array<Student> = useSelector(
     (state: { studentsReducer: StudentList }) => state.studentsReducer.students
   );
+
+  // Local state
   const [studentInfo, setStudentInfo] = useState<Student | {}>({});
 
   const handleModalOpen = (id: number | string) => { 
@@ -61,6 +65,7 @@ export function ListTable({
     });
   };
 
+  // If no data present, return empty tag
   if (!tableContent || !tableContent.rowData || !tableContent.rowData.length)
     return <></>;
 

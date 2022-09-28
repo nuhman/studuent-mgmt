@@ -2,31 +2,34 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components/macro";
 import { Button, useDisclosure } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
-import { getStudents, postStudent } from "../../redux/slices/students/studentsSlice";
-import { getNationalities } from "../../redux/slices/nationality/nationalitySlice";
-import { transformStudentList } from "../../utils/helper";
-import { TableRow } from "../../interfaces";
-import { AddIcon } from '@chakra-ui/icons'
 
+// Models
+import { TableRow } from "../../interfaces";
 import {
   Nationality,
   NationalityList,
   Student,
   StudentList,
 } from "../../redux/types";
+import { LIST_TABLE_HEADERS, COLORS } from "../../mocks/data/app";
 
-import { ListTable, NewStudent, } from "../../components";
+// Redux Slices Import
+import { getStudents } from "../../redux/slices/students/studentsSlice";
+import { getNationalities } from "../../redux/slices/nationality/nationalitySlice";
 
-// TEMP:
-import {
-  LIST_TABLE_HEADERS,
-  COLORS,
-} from "../../mocks/data/app";
+// Helper files
+import { AddIcon } from "@chakra-ui/icons";
+import { transformStudentList } from "../../utils/helper";
+
+// Components
+import { ListTable, NewStudent } from "../../components";
 
 export function HomePage() {
+  const dispatch = useDispatch<any>();
 
   const [tableContent, setTableContent] = useState<TableRow[]>([]);
 
+  // Redux Store Selectors
   const students: Array<Student> = useSelector(
     (state: { studentsReducer: StudentList }) => state.studentsReducer.students
   );
@@ -42,16 +45,17 @@ export function HomePage() {
       state.nationalitiesReducer.hasError
   );
 
-  const dispatch = useDispatch<any>();
-
+  // For 'add student' model state
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // This will run the first time the app loads
   const useEffectOnMount = (effect: React.EffectCallback) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     React.useEffect(effect, []);
   };
 
   useEffectOnMount(() => {
+    // Start fetching 'students' and 'nationalities' data while the app loads
 
     if (students.length <= 0 && !studentsLoadedError) {
       dispatch(getStudents());
@@ -60,10 +64,10 @@ export function HomePage() {
     if (nationalities.length <= 0 && !nationalitiesLoadedError) {
       dispatch(getNationalities());
     }
-
   });
 
   useEffect(() => {
+    // Transform 'students' data into expected table data format
     setTableContent(transformStudentList(students));
   }, [students]);
 
@@ -90,11 +94,7 @@ export function HomePage() {
           }}
           colorScheme="gray"
         />
-       
-       <NewStudent 
-        isOpen={isOpen}
-        onClose={onClose}
-       />
+        <NewStudent isOpen={isOpen} onClose={onClose} />
       </Wrapper>
     </>
   );

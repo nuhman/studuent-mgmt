@@ -1,5 +1,4 @@
-import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { NationalityList, Nationality } from "../../types";
+import { createSlice, PayloadAction, } from "@reduxjs/toolkit";
 
 const initialState: { isAdmin: boolean } = {
   isAdmin: true,

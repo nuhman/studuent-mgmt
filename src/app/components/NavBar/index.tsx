@@ -1,33 +1,29 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components/macro';
-import { Button, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useSelector } from 'react-redux';
-import { setAuthRole } from '../../redux/slices/family/authSlice';
-import { useDispatch } from 'react-redux';
+import React from "react";
+import styled from "styled-components/macro";
+import { Button, Menu, MenuButton, MenuList, MenuItem } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+
+// Redux Slices
+import { setAuthRole } from "../../redux/slices/auth/authSlice";
 
 export function NavBar() {
-
   const dispatch = useDispatch();
 
+  // Store Selectors
   const isAdminRole: boolean = useSelector(
-    (state: { authReducer: { isAdmin: boolean} }) =>
-      state.authReducer.isAdmin
+    (state: { authReducer: { isAdmin: boolean } }) => state.authReducer.isAdmin
   );
 
   const ROLES = {
-    admin: 'ADMIN',
-    reg: 'REGISTRAR'
+    admin: "ADMIN",
+    reg: "REGISTRAR",
   };
 
-  useEffect(() => {
-    console.log("DXD : isADmin", isAdminRole);
-  }, [isAdminRole]);
-
   const handleRoleChange = (isAdmin: boolean) => {
-    console.log("DXD: handle change" , isAdmin);
     dispatch(setAuthRole(isAdmin));
-  }
+  };
 
   return (
     <Wrapper>
@@ -41,8 +37,12 @@ export function NavBar() {
               {isAdminRole ? ROLES.admin : ROLES.reg}
             </MenuButton>
             <MenuList>
-              <MenuItem onClick={() => handleRoleChange(true)}>{ROLES.admin}</MenuItem>
-              <MenuItem onClick={() => handleRoleChange(false)}>{ROLES.reg}</MenuItem>
+              <MenuItem onClick={() => handleRoleChange(true)}>
+                {ROLES.admin}
+              </MenuItem>
+              <MenuItem onClick={() => handleRoleChange(false)}>
+                {ROLES.reg}
+              </MenuItem>
             </MenuList>
           </Menu>
         </RoleMenu>

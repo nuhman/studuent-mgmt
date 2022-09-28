@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { FamilyMember, Nationality, Student, StudentList } from "../../types";
 
+const BASE_URL = "http://localhost:8088/";
+
 const initialState: StudentList = {
   students: [],
   loading: false,
@@ -11,7 +13,7 @@ export const getStudents = createAsyncThunk(
   "studentSlice/getStudents",
   async (payload, { dispatch }) => {
     dispatch(loadStudents());
-    const url = "http://localhost:8088/api/Students";
+    const url = `${BASE_URL}api/Students`;
     try {
       const rawResponse = await fetch(url);
       const students: Array<Student> = await rawResponse.json();
@@ -54,7 +56,7 @@ export const getStudents = createAsyncThunk(
 );
 
 export const getStudentNationality = async (studentId: number) => {
-  const url = `http://localhost:8088/api/Students/${studentId}/Nationality`;
+  const url = `${BASE_URL}api/Students/${studentId}/Nationality`;
   try {
     const rawResponse = await fetch(url);
     const nationality = await rawResponse.json();
@@ -66,7 +68,7 @@ export const getStudentNationality = async (studentId: number) => {
 }
 
 export const getStudenFamilyMembers = async (studentId: number) => {
-  const url = `http://localhost:8088/api/Students/${studentId}/FamilyMembers`;
+  const url = `${BASE_URL}api/Students/${studentId}/FamilyMembers`;
   try {
     const rawResponse = await fetch(url);
     const familyMembers = await rawResponse.json();
@@ -78,7 +80,7 @@ export const getStudenFamilyMembers = async (studentId: number) => {
 }
 
 export const updateStudentNationality = async (studentID: number, nationalityID: number) => {
-  const url = `http://localhost:8088/api/Students/${studentID}/Nationality/${nationalityID}`;
+  const url = `${BASE_URL}api/Students/${studentID}/Nationality/${nationalityID}`;
   try {
     const rawResponse = await fetch(url, {
       method: "PUT",
@@ -100,7 +102,7 @@ export const updateStudentNationality = async (studentID: number, nationalityID:
 }
 
 export const insertStudentFamily = async (studentID: number, payload: any) => {
-  const url = `http://localhost:8088/api/Students/${studentID}/FamilyMembers`;
+  const url = `${BASE_URL}api/Students/${studentID}/FamilyMembers`;
   try {
     const rawResponse = await fetch(url, {
       method: "POST",
@@ -121,7 +123,7 @@ export const insertStudentFamily = async (studentID: number, payload: any) => {
 }
 
 export const updateFamilyMember = async (memberID: number, payload: any) => {
-  const url = `http://localhost:8088/api/FamilyMembers/${memberID}`;
+  const url = `${BASE_URL}api/FamilyMembers/${memberID}`;
   try {
     const rawResponse = await fetch(url, {
       method: "PUT",
@@ -141,7 +143,7 @@ export const updateFamilyMember = async (memberID: number, payload: any) => {
 
 
 export const updateFamilyMemberNationality = async (memberID: number, nationalityID: number) => {
-  const url = `http://localhost:8088/api/FamilyMembers/${memberID}/Nationality/${nationalityID}`;
+  const url = `${BASE_URL}api/FamilyMembers/${memberID}/Nationality/${nationalityID}`;
   try {
     const rawResponse = await fetch(url, {
       method: "PUT",
@@ -162,7 +164,7 @@ export const updateFamilyMemberNationality = async (memberID: number, nationalit
 export const postStudent = createAsyncThunk(
   "studentSlice/postStudent",
   async (payload: any, { dispatch }) => {
-    const url = "http://localhost:8088/api/Students";
+    const url = `${BASE_URL}api/Students`;
 
     try {
       const rawResponse = await fetch(url, {
@@ -219,7 +221,7 @@ export const putStudent = createAsyncThunk(
   "studentSlice/putStudent",
   async (payload: any, { dispatch }) => {
     dispatch(updateStudent())
-    const url = `http://localhost:8088/api/Students/${payload.ID}`;
+    const url = `${BASE_URL}api/Students/${payload.ID}`;
 
     try {
       const rawResponse = await fetch(url, {
@@ -295,10 +297,10 @@ export const deleteStudentFamily = createAsyncThunk(
   "studentSlice/deleteStudentFamily",
   async (payload: any, { dispatch }) => {
     dispatch(updateStudent())
-    const url = `http://localhost:8088/api/FamilyMembers/${payload.memberID}`;
+    const url = `${BASE_URL}api/FamilyMembers/${payload.memberID}`;
 
     try {
-      const rawResponse = await fetch(url, {
+      await fetch(url, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -382,7 +384,6 @@ export const studentsSlice = createSlice({
       state.loading = true;
     });
     builder.addCase(getStudents.fulfilled, (state, action) => {
-      //state.students = action.payload;
       state.loading = false;
     });
     builder.addCase(getStudents.rejected, (state, action) => {
@@ -394,7 +395,6 @@ export const studentsSlice = createSlice({
       state.loading = true;
     });
     builder.addCase(postStudent.fulfilled, (state, action) => {
-      //state.students = action.payload;
       state.loading = false;
     });
     builder.addCase(postStudent.rejected, (state, action) => {

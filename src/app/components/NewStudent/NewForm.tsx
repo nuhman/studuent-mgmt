@@ -4,20 +4,23 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  FormHelperText,
   Input,
   Button,
   Select,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
-import { Nationality, NationalityList, Student } from "../../redux/types";
 import { useDispatch, useSelector } from "react-redux";
-import { get as _get } from "lodash";
+
+// Models
+import { Nationality, NationalityList } from "../../redux/types";
+
+// Redux slices
 import { postStudent } from "../../redux/slices/students/studentsSlice";
 
-export function NewForm({ onClose, }: { onClose: () => void; }) {
+export function NewForm({ onClose }: { onClose: () => void }) {
   const dispatch = useDispatch<any>();
 
+  // Local state
   const [studentNationality, setStudentNationality] = useState<
     Nationality | undefined
   >();
@@ -44,13 +47,10 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
     },
   ]);
 
+  // Redux store selectos
   const nationalities: Array<Nationality> = useSelector(
     (state: { nationalitiesReducer: NationalityList }) =>
       state.nationalitiesReducer.nationalities
-  );
-  const nationalitiesLoadedError: boolean = useSelector(
-    (state: { nationalitiesReducer: NationalityList }) =>
-      state.nationalitiesReducer.hasError
   );
 
   useEffect(() => {
@@ -58,8 +58,11 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
   }, [nationalities]);
 
   function validateName(value: string) {
+    // PASS: validate fn TODO
     return;
   }
+
+  // Form data change methods
 
   const handleStudentNationalityChange = (e: any) => {
     const _nation = (nationalities || []).find(
@@ -68,77 +71,74 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
     setStudentNationality(_nation);
   };
 
-  const handleFamilyNationalityChange = (e: any, index: number)  => {
+  const handleFamilyNationalityChange = (e: any, index: number) => {
     const _familyInfo = (familyInfo || []).map((info, i) => {
-        if (i === index) {
-          const _nation = (nationalities || []).find(
-            (n) => `${n.ID}` === e.target.value
-          );
-          return {
-            ...info,
-            nationality: _nation || info.nationality,
-            country: _nation?.Title,
-          };
-        }
-        return info;
-      });
-  
-      setFamilyInfo(_familyInfo);
-  }
+      if (i === index) {
+        const _nation = (nationalities || []).find(
+          (n) => `${n.ID}` === e.target.value
+        );
+        return {
+          ...info,
+          nationality: _nation || info.nationality,
+          country: _nation?.Title,
+        };
+      }
+      return info;
+    });
+    setFamilyInfo(_familyInfo);
+  };
 
   const handleFamilyRelationChange = (e: any, index: number) => {
     const _familyInfo = (familyInfo || []).map((info, i) => {
-        if (i === index) {
-          return {
-            ...info,
-            relationship: e.target.value,
-            relation: e.target.value,
-          };
-        }
-  
-        return info;
-      });
-  
-      setFamilyInfo(_familyInfo);
-  }
+      if (i === index) {
+        return {
+          ...info,
+          relationship: e.target.value,
+          relation: e.target.value,
+        };
+      }
 
-  const handleFamilyNameChange = (e: any, index: Number, isLastName?: boolean) => {
+      return info;
+    });
+    setFamilyInfo(_familyInfo);
+  };
+
+  const handleFamilyNameChange = (
+    e: any,
+    index: Number,
+    isLastName?: boolean
+  ) => {
     const _familyInfo = (familyInfo || []).map((info, i) => {
-        if (i === index) {
-          return {
-            ...info,
-            firstName: isLastName ? info.firstName : e.target.value,
-            lastName: isLastName ? e.target.value : info.lastName,
-          };
-        }
-  
-        return info;
-      });
-  
-      setFamilyInfo(_familyInfo);
-  }
+      if (i === index) {
+        return {
+          ...info,
+          firstName: isLastName ? info.firstName : e.target.value,
+          lastName: isLastName ? e.target.value : info.lastName,
+        };
+      }
+      return info;
+    });
+    setFamilyInfo(_familyInfo);
+  };
 
   const handleFamilyDOBChange = (e: any, index: Number) => {
     const _familyInfo = (familyInfo || []).map((info, i) => {
-        if (i === index) {
-          return {
-            ...info,
-            dateOfBirth: e.target.value,
-          };
-        }
-  
-        return info;
-      });
-  
-      setFamilyInfo(_familyInfo);
-  }
+      if (i === index) {
+        return {
+          ...info,
+          dateOfBirth: e.target.value,
+        };
+      }
+      return info;
+    });
+    setFamilyInfo(_familyInfo);
+  };
 
   const renderFormField = (
     name: string,
     label: string,
     type: string,
-    validateFn?: Function,
-    options?: any
+    validateFn?: Function
   ) => {
     return (
       <Field name={name} validate={validateFn}>
@@ -161,7 +161,7 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
   return (
     <Wrapper>
       <Formik
-        initialValues ={{
+        initialValues={{
           firstName: "",
           lastName: "",
           dateOfBirth: "",
@@ -170,28 +170,33 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
           familyMembers: familyInfo,
         }}
         onSubmit={(values, actions) => {
-          
+          // When form is submitted:
+
           values.nationality = studentNationality;
           values.country = studentNationality && studentNationality.Title;
-          
+
           if (!values.firstName || !values.lastName || !values.dateOfBirth) {
             actions.setSubmitting(false);
             alert("Please provide necessary details!");
-            return; 
+            return;
           }
 
-          if (familyInfo[0].firstName && familyInfo[0].lastName && familyInfo[0].dateOfBirth) {
+          if (
+            familyInfo[0].firstName &&
+            familyInfo[0].lastName &&
+            familyInfo[0].dateOfBirth
+          ) {
             values.familyMembers = familyInfo;
           } else {
-            values.familyMembers = [];            
+            values.familyMembers = [];
           }
 
           dispatch(postStudent(values));
-          
+
           setTimeout(() => {
             console.log(values);
             actions.setSubmitting(false);
-          }, 1000);
+          }, 2000);
         }}
       >
         {(props) => (
@@ -273,29 +278,43 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
                         >
                           <FormControl>
                             <FormLabel>First Name</FormLabel>
-                            <Input type="text" value={fInfo.firstName} onChange={(e) => handleFamilyNameChange(e, index)}  />
+                            <Input
+                              type="text"
+                              value={fInfo.firstName}
+                              onChange={(e) => handleFamilyNameChange(e, index)}
+                            />
                           </FormControl>
 
                           <FormControl>
                             <FormLabel>Last Name</FormLabel>
-                            <Input type="text" value={fInfo.lastName} onChange={(e) => handleFamilyNameChange(e, index, true)}  />
+                            <Input
+                              type="text"
+                              value={fInfo.lastName}
+                              onChange={(e) =>
+                                handleFamilyNameChange(e, index, true)
+                              }
+                            />
                           </FormControl>
 
                           <FormControl>
                             <FormLabel>Date of Birth</FormLabel>
-                            <Input type="date" value={fInfo.dateOfBirth} onChange={(e) => handleFamilyDOBChange(e, index)}  />
+                            <Input
+                              type="date"
+                              value={fInfo.dateOfBirth}
+                              onChange={(e) => handleFamilyDOBChange(e, index)}
+                            />
                           </FormControl>
 
                           <FormControl style={{ marginBottom: "20px" }}>
                             <FormLabel>Country</FormLabel>
                             <Select
-                                defaultValue={nationalities && nationalities[0].ID}
-                                value={
-                                    fInfo.nationality?.ID
-                                }
-                                onChange={(e) =>
-                                    handleFamilyNationalityChange(e, index)
-                                }
+                              defaultValue={
+                                nationalities && nationalities[0].ID
+                              }
+                              value={fInfo.nationality?.ID}
+                              onChange={(e) =>
+                                handleFamilyNationalityChange(e, index)
+                              }
                             >
                               {nationalities.map((n) => (
                                 <option key={n.ID} value={n.ID}>
@@ -308,11 +327,11 @@ export function NewForm({ onClose, }: { onClose: () => void; }) {
                           <FormControl>
                             <FormLabel>Relation</FormLabel>
                             <Select
-                                defaultValue={"Parent"}
-                                value={fInfo.relationship || "Parent"}
-                                onChange={(e) =>
-                                    handleFamilyRelationChange(e, index)
-                                }
+                              defaultValue={"Parent"}
+                              value={fInfo.relationship || "Parent"}
+                              onChange={(e) =>
+                                handleFamilyRelationChange(e, index)
+                              }
                             >
                               {["Parent", "Sibling", "Spouse"].map((n) => (
                                 <option key={n} value={n}>
